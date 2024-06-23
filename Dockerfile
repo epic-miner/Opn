@@ -1,14 +1,27 @@
-# Use the existing openvpn image as the base image
-FROM alekslitvinenk/openvpn
+# Use an official Ubuntu as a parent image
+FROM ubuntu:20.04
 
-# Install curl
-RUN apt-get update && apt-get install -y curl
+# Set environment variables to non-interactive to suppress prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Set environment variable for HOST_ADDR
-ENV HOST_ADDR=$(curl -s https://api.ipify.org)
+# Install necessary packages
+RUN apt-get update && \
+    apt-get install -y openvpn easy-rsa iproute2 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Expose the necessary ports
-EXPOSE 1194/udp 8080/tcp
+# Set up easy-rsa
+RUN make-cadir /etc/openvpn/easy-rsa
+WORKDIR /etc/openvpn/easy-rsa
+RUN ./easyrsa init-pki
 
-# Set the entrypoint
-ENTRYPOINT ["sh", "-c", "openvpn --config /opt/Dockovpn_data/config.ovpn"]
+# Copy a script to initialize OpenVPN configuration
+COPY init-openvpn.sh /etc/openvpn/init-openvpn.sh
+RUN chmod +x /etc/openvpn/init-openvpn.sh
+
+# Expose the OpenVPN port
+EXPOSE 1194/udp
+
+# Set the entry point to run OpenVPN
+ENTRYPOINT ["/etc/openvpn/init-openvpn.sh"]
+CMD ["openvpn", "--config", "/etc/openvpn/server.conf"]
