@@ -1,16 +1,13 @@
 services:
   - type: web
-    name: dockovpn
+    name: openvpn-server
     env: docker
+    plan: free
     dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    port: 1194
     envVars:
-      - key: HOST_ADDR
-        value: $(curl -s https://api.ipify.org)
-    ports:
-      - type: udp
-        port: 1194
-      - type: tcp
-        port: 8080
-    persistentVolumes:
-      - name: openvpn_conf
-        path: /opt/Dockovpn_data
+      - key: OPENVPN_CONFIG
+        value: /etc/openvpn/server.conf
+    capAdd:
+      - NET_ADMIN
