@@ -5,16 +5,16 @@ set -e
 EASYRSA_DIR=/etc/openvpn/easy-rsa
 OPENVPN_DIR=/etc/openvpn
 
-# Initialize PKI and generate server certificates
+# Initialize PKI and confirm removal of existing PKI if any
 cd $EASYRSA_DIR
-./easyrsa init-pki
+yes yes | ./easyrsa init-pki
 
 # Build CA
-./easyrsa --batch build-ca nopass
+yes yes | ./easyrsa --batch build-ca nopass
 
 # Generate server request and sign it
-./easyrsa --batch gen-req server nopass
-./easyrsa --batch sign-req server server
+yes yes | ./easyrsa --batch gen-req server nopass
+yes yes | ./easyrsa --batch sign-req server server
 
 # Generate Diffie-Hellman key
 ./easyrsa gen-dh
@@ -23,8 +23,8 @@ cd $EASYRSA_DIR
 openvpn --genkey --secret $OPENVPN_DIR/ta.key
 
 # Generate client request and sign it
-./easyrsa --batch gen-req client1 nopass
-./easyrsa --batch sign-req client client1
+yes yes | ./easyrsa --batch gen-req client1 nopass
+yes yes | ./easyrsa --batch sign-req client client1
 
 # Move all necessary files to the OpenVPN directory
 cp $EASYRSA_DIR/pki/ca.crt $OPENVPN_DIR
